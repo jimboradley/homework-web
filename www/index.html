@@ -980,10 +980,8 @@ async function checkForUpdate(manual){
   }catch(e){ulog('FAILED',e&&(e.message||e.code||String(e)));say('couldn’t update: '+(e&&(e.message||e.code)||e))}
 }
 function maybeCheckForUpdate(){if(Date.now()-read('homework.lastUpdateCheck',0)>36e5) checkForUpdate(false)}
-// Apply a downloaded update while the app is in the background, so it never reloads under his fingers.
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&pendingUpdate&&UP&&!drag){saveTimer();ulog('hidden: applying',pendingUpdate.id);UP.set({id:pendingUpdate.id}).catch(e=>ulog('set FAILED',e&&e.message))}
-});
+// A downloaded update is applied by the updater itself the next time the app goes to the background
+// (calling set() here as well made it reload twice, and the updater then rolled the new version back).
 function initUpdates(){
   $('verStatus').textContent=`App version ${shownVersion()}`;
   if(!UP) return;
@@ -999,7 +997,7 @@ function initUpdates(){
 
 /* ---------- boot ---------- */
 archivePastEvents();buildChips();initSettings();initUpdates();tickTimer();render();renderTimer();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){archivePastEvents();buildChips();tickTimer();render();scheduleSoon();maybeCheckForUpdate()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(UP) UP.notifyAppReady().catch(()=>{});archivePastEvents();buildChips();tickTimer();render();scheduleSoon();maybeCheckForUpdate()}else saveTimer()});
 if(!LN&&'serviceWorker' in navigator&&location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 initReminders();
 // Tell the updater this version started fine; if a broken update never gets here, it rolls back automatically.
