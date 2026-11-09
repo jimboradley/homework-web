@@ -946,8 +946,10 @@ const UPDATE_FEED='https://raw.githubusercontent.com/jimboradley/homework-web/di
 const UP=LN?CAP.Plugins.CapacitorUpdater:null;
 let pendingUpdate=null;
 const shownVersion=()=>APP_VERSION.startsWith('__')?'dev':APP_VERSION;
+const ulog=(...a)=>console.log('[hw-update]',...a);
 async function checkForUpdate(manual){
   if(!UP) return;
+  ulog('check start; running',APP_VERSION,'manual',manual);
   const btn=$('checkUpdate');
   const say=(msg,btnText,busy)=>{if(!manual) return;$('verStatus').textContent=`App version ${shownVersion()} · ${msg}`;
     btn.textContent=btnText||'Check for app updates';btn.disabled=!!busy};
@@ -957,21 +959,22 @@ async function checkForUpdate(manual){
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),15000);
     const r=await fetch(UPDATE_FEED+'?t='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(to);
     if(!r.ok) throw new Error('feed '+r.status);
-    const v=await r.json();
+    const v=await r.json();ulog('feed says',JSON.stringify(v));
     if(!v.version||!v.url||v.version===APP_VERSION){write('homework.lastUpdateCheck',Date.now());say('up to date ✓');return}
     say(`downloading version ${v.version}…`,'Downloading…',true);
     const {bundles}=await UP.list();
     let b=bundles.find(x=>x.version===v.version&&x.status==='success');
     if(!b) b=await UP.download({url:v.url,version:v.version});
+    ulog('downloaded',JSON.stringify(b));
     await UP.next({id:b.id});
-    pendingUpdate=b;write('homework.lastUpdateCheck',Date.now());
+    pendingUpdate=b;write('homework.lastUpdateCheck',Date.now());ulog('queued as next',b.id);
     say(`version ${b.version} is ready`,'Restart now to update');
-  }catch(e){console.error('update check failed',e);say('couldn’t check — are you online?')}
+  }catch(e){ulog('FAILED',e&&(e.message||e.code||String(e)),JSON.stringify(e));say('couldn’t check — are you online?')}
 }
 function maybeCheckForUpdate(){if(Date.now()-read('homework.lastUpdateCheck',0)>36e5) checkForUpdate(false)}
 // Apply a downloaded update while the app is in the background, so it never reloads under his fingers.
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden&&pendingUpdate&&UP&&!drag){saveTimer();UP.set({id:pendingUpdate.id}).catch(()=>{})}
+  if(document.hidden&&pendingUpdate&&UP&&!drag){saveTimer();ulog('hidden: applying',pendingUpdate.id);UP.set({id:pendingUpdate.id}).catch(e=>ulog('set FAILED',e&&e.message))}
 });
 function initUpdates(){
   $('verStatus').textContent=`App version ${shownVersion()}`;
@@ -989,7 +992,8 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){archivePa
 if(!LN&&'serviceWorker' in navigator&&location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 initReminders();
 // Tell the updater this version started fine; if a broken update never gets here, it rolls back automatically.
-if(UP){UP.notifyAppReady().catch(()=>{});setTimeout(()=>checkForUpdate(false),3000)}
+if(UP){ulog('boot',APP_VERSION);UP.notifyAppReady().then(r=>ulog('appReady ok',JSON.stringify(r))).catch(e=>ulog('appReady FAILED',e&&e.message));
+  UP.current().then(c=>ulog('plugin current',JSON.stringify(c))).catch(()=>{});setTimeout(()=>checkForUpdate(false),3000)}
 // Let them know when a live update has just been applied.
 (()=>{const seen=read('homework.seenVersion',null);
   if(/^\d/.test(APP_VERSION)&&seen&&seen!==APP_VERSION) setTimeout(()=>toast(`Updated to version ${APP_VERSION} ✨`),600);
