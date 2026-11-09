@@ -949,14 +949,13 @@ async function checkForUpdate(manual){
     const r=await fetch(UPDATE_FEED+'?t='+Date.now(),{cache:'no-store'});
     if(!r.ok) throw new Error('feed '+r.status);
     const v=await r.json();
-    write('homework.lastUpdateCheck',Date.now());
-    if(!v.version||!v.url||v.version===APP_VERSION){if(manual) toast('You have the latest version');return}
+    if(!v.version||!v.url||v.version===APP_VERSION){write('homework.lastUpdateCheck',Date.now());if(manual) toast('You have the latest version');return}
     if(pendingUpdate&&pendingUpdate.version===v.version){if(manual) toast('Update ready — it installs when you leave the app');return}
     const {bundles}=await UP.list();
     let b=bundles.find(x=>x.version===v.version&&x.status==='success');
     if(!b) b=await UP.download({url:v.url,version:v.version});
     await UP.next({id:b.id});
-    pendingUpdate=b;
+    pendingUpdate=b;write('homework.lastUpdateCheck',Date.now());
     if(manual) toast('Update downloaded — it installs when you leave the app');
   }catch(e){console.error('update check failed',e);if(manual) toast('Couldn’t check for updates. Are you online?')}
 }

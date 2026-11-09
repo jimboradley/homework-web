@@ -29,6 +29,12 @@ jobs:
           grep -q "APP_VERSION='${VERSION}'" bundle/index.html
           (cd bundle && zip -qr "../out/bundle-${VERSION}.zip" .)
           cp -r bundle/. out/
+          # Keep the previous few bundles: GitHub's file cache can serve a version.json that is
+          # up to 5 minutes old, and phones must still be able to download the bundle it names.
+          if git fetch -q --depth=1 origin dist 2>/dev/null; then
+            git archive FETCH_HEAD | tar -x -C bundle --wildcards 'bundle-*.zip' 2>/dev/null || true
+            ls bundle/bundle-*.zip 2>/dev/null | sort -V | tail -n 4 | xargs -r -I{} cp {} out/
+          fi
           printf '{"version":"%s","url":"https://raw.githubusercontent.com/%s/dist/bundle-%s.zip"}\n' \
             "$VERSION" "$GITHUB_REPOSITORY" "$VERSION" > out/version.json
           cat out/version.json
