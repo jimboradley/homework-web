@@ -947,14 +947,13 @@ const UPDATE_FEED='https://raw.githubusercontent.com/jimboradley/homework-web/di
 const UP=LN?CAP.Plugins.CapacitorUpdater:null;
 let pendingUpdate=null;
 const shownVersion=()=>APP_VERSION.startsWith('__')?'dev':APP_VERSION;
-// Every update step is also kept on the phone (last 60 lines) and shown under Settings → Update log.
-const ulog=(...a)=>{console.log('[hw-update]',...a);
+// Update steps are kept on the phone (last 60 lines) and shown under Settings → Update log.
+const ulog=(...a)=>{
   const t=new Date(),line=`${t.toLocaleDateString(undefined,{month:'numeric',day:'numeric'})} ${t.toTimeString().slice(0,8)} [${APP_VERSION}] `+a.map(x=>typeof x==='string'?x:JSON.stringify(x)).join(' ');
   const log=read('homework.updLog',[]);log.push(line);write('homework.updLog',log.slice(-60));
   const el=$('updLogText');if(el) el.textContent=log.slice(-60).join('\n')};
 async function checkForUpdate(manual){
   if(!UP) return;
-  ulog('check start; running',APP_VERSION,'manual',manual);
   const btn=$('checkUpdate');
   const say=(msg,btnText,busy)=>{if(!manual) return;$('verStatus').textContent=`App version ${shownVersion()} · ${msg}`;
     btn.textContent=btnText||'Check for app updates';btn.disabled=!!busy};
@@ -964,17 +963,17 @@ async function checkForUpdate(manual){
     const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),15000);
     const r=await fetch(UPDATE_FEED+'?t='+Date.now(),{cache:'no-store',signal:ctl.signal});clearTimeout(to);
     if(!r.ok) throw new Error('feed '+r.status);
-    const v=await r.json();ulog('feed says',JSON.stringify(v));
-    if(!v.version||!v.url||v.version===APP_VERSION){write('homework.lastUpdateCheck',Date.now());say('up to date ✓');return}
+    const v=await r.json();
+    if(!v.version||!v.url||v.version===APP_VERSION){ulog('up to date');write('homework.lastUpdateCheck',Date.now());say('up to date ✓');return}
     say(`downloading version ${v.version}…`,'Downloading…',true);
     const {bundles}=await UP.list();
     let b=bundles.find(x=>x.version===v.version&&x.status==='success');
     if(!b) b=await UP.download({url:v.url,version:v.version,checksum:v.checksum||''});
-    ulog('downloaded',JSON.stringify(b));
+    
     await UP.next({id:b.id});
-    pendingUpdate=b;write('homework.lastUpdateCheck',Date.now());ulog('queued as next',b.id);
+    pendingUpdate=b;write('homework.lastUpdateCheck',Date.now());ulog('downloaded',b.version);
     say(`version ${b.version} is ready`,'Restart now to update');
-  }catch(e){ulog('FAILED',e&&(e.message||e.code||String(e)),JSON.stringify(e));say('couldn’t update: '+(e&&(e.message||e.code)||e))}
+  }catch(e){ulog('FAILED',e&&(e.message||e.code||String(e)));say('couldn’t update: '+(e&&(e.message||e.code)||e))}
 }
 function maybeCheckForUpdate(){if(Date.now()-read('homework.lastUpdateCheck',0)>36e5) checkForUpdate(false)}
 // Apply a downloaded update while the app is in the background, so it never reloads under his fingers.
@@ -986,8 +985,8 @@ function initUpdates(){
   if(!UP) return;
   $('checkUpdate').hidden=false;$('updLog').hidden=false;
   $('updLogText').textContent=read('homework.updLog',[]).join('\n');
-  for(const ev of ['download','downloadComplete','downloadFailed','updateFailed','appReloaded','set','noNeedUpdate'])
-    try{UP.addListener(ev,d=>{if(ev==='download'&&d&&d.percent%25) return;ulog('event',ev,d)})}catch(e){}
+  for(const ev of ['downloadFailed','updateFailed'])
+    try{UP.addListener(ev,d=>ulog(ev,d&&d.bundle?d.bundle.version:d))}catch(e){}
   $('checkUpdate').onclick=()=>{
     if(pendingUpdate){saveTimer();UP.set({id:pendingUpdate.id}).catch(()=>{});return}
     checkForUpdate(true);
@@ -1000,10 +999,8 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){archivePa
 if(!LN&&'serviceWorker' in navigator&&location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 initReminders();
 // Tell the updater this version started fine; if a broken update never gets here, it rolls back automatically.
-if(UP){ulog('boot',APP_VERSION);UP.notifyAppReady().then(r=>ulog('appReady ok',JSON.stringify(r))).catch(e=>ulog('appReady FAILED',e&&e.message));
-  UP.current().then(c=>ulog('plugin current',JSON.stringify(c))).catch(()=>{});
-  UP.list().then(l=>ulog('bundles',(l.bundles||[]).map(b=>b.version+':'+b.status).join(' '))).catch(()=>{});
-  UP.getNextBundle&&UP.getNextBundle().then(n=>ulog('next',n&&n.version)).catch(()=>{});setTimeout(()=>checkForUpdate(false),3000)}
+if(UP){ulog('started');UP.notifyAppReady().catch(e=>ulog('appReady FAILED',e&&e.message));
+setTimeout(()=>checkForUpdate(false),3000)}
 // Let them know when a live update has just been applied.
 (()=>{const seen=read('homework.seenVersion',null);
   if(/^\d/.test(APP_VERSION)&&seen&&seen!==APP_VERSION) setTimeout(()=>toast(`Updated to version ${APP_VERSION} ✨`),600);
