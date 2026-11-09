@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Homework</title>
+<title>Locked In</title>
 <meta name="description" content="A fast homework list with priorities, reminders, a focus timer and time predictions.">
 <meta name="theme-color" content="#4f46e5">
 <link rel="manifest" href="manifest.webmanifest">
@@ -192,7 +192,7 @@ body.timing .toast{bottom:calc(110px + env(safe-area-inset-bottom))}
 <body>
 <div class="wrap">
   <header>
-    <h1>Homework</h1>
+    <h1>Locked In</h1>
     <div class="hright">
       <button class="iconbtn" id="focusBtn" aria-label="Start a focus timer">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>
@@ -922,7 +922,7 @@ async function initReminders(){
   try{await LN.createChannel({id:CHANNEL,name:'Homework reminders',importance:4,visibility:1,vibration:true})}catch{}
   $('fixNotif').onclick=async()=>{
     const r=await LN.requestPermissions();
-    if(r.display!=='granted') toast('Turn on notifications in Android Settings → Apps → Homework');
+    if(r.display!=='granted') toast('Turn on notifications in Android Settings → Apps → Locked In');
     await reschedule();refreshStatus();
   };
   $('testNotif').onclick=async()=>{

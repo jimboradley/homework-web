@@ -1,6 +1,6 @@
 {
-  "name": "Homework",
-  "short_name": "Homework",
+  "name": "Locked In",
+  "short_name": "Locked In",
   "description": "A fast homework list you can reorder by priority.",
   "start_url": "./",
   "scope": "./",
