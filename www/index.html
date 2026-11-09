@@ -1000,6 +1000,11 @@ archivePastEvents();buildChips();initSettings();initUpdates();tickTimer();render
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(UP) UP.notifyAppReady().catch(()=>{});archivePastEvents();buildChips();tickTimer();render();scheduleSoon();maybeCheckForUpdate()}else saveTimer()});
 if(!LN&&'serviceWorker' in navigator&&location.protocol!=='file:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 initReminders();
+// Android back gesture: close an open window, then go back to To do, then leave the app.
+if(LN&&CAP.Plugins.App) CAP.Plugins.App.addListener('backButton',()=>{
+  const d=document.querySelector('dialog[open]');
+  if(d) d.close(); else if(!$('upView').hidden) setTab(false); else CAP.Plugins.App.minimizeApp();
+});
 // Tell the updater this version started fine; if a broken update never gets here, it rolls back automatically.
 if(UP){ulog('started');UP.notifyAppReady().catch(e=>ulog('appReady FAILED',e&&e.message));
 setTimeout(()=>checkForUpdate(false),3000)}
