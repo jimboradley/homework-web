@@ -979,6 +979,10 @@ if(!LN&&'serviceWorker' in navigator&&location.protocol!=='file:') navigator.ser
 initReminders();
 // Tell the updater this version started fine; if a broken update never gets here, it rolls back automatically.
 if(UP){UP.notifyAppReady().catch(()=>{});setTimeout(()=>checkForUpdate(false),3000)}
+// Let them know when a live update has just been applied.
+(()=>{const seen=read('homework.seenVersion',null);
+  if(/^\d/.test(APP_VERSION)&&seen&&seen!==APP_VERSION) setTimeout(()=>toast(`Updated to version ${APP_VERSION} ✨`),600);
+  write('homework.seenVersion',APP_VERSION)})();
 </script>
 </body>
 </html>
