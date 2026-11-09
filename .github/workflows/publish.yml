@@ -35,8 +35,10 @@ jobs:
             git archive FETCH_HEAD | tar -x -C bundle --wildcards 'bundle-*.zip' 2>/dev/null || true
             ls bundle/bundle-*.zip 2>/dev/null | sort -V | tail -n 4 | xargs -r -I{} cp {} out/
           fi
-          printf '{"version":"%s","url":"https://raw.githubusercontent.com/%s/dist/bundle-%s.zip"}\n' \
-            "$VERSION" "$GITHUB_REPOSITORY" "$VERSION" > out/version.json
+          # The updater refuses bundles without a SHA-256 checksum of the zip.
+          SUM=$(sha256sum "out/bundle-${VERSION}.zip" | cut -d' ' -f1)
+          printf '{"version":"%s","url":"https://raw.githubusercontent.com/%s/dist/bundle-%s.zip","checksum":"%s"}\n' \
+            "$VERSION" "$GITHUB_REPOSITORY" "$VERSION" "$SUM" > out/version.json
           cat out/version.json
 
       - name: Publish to the dist branch

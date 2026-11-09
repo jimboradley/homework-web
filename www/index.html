@@ -969,7 +969,7 @@ async function checkForUpdate(manual){
     say(`downloading version ${v.version}…`,'Downloading…',true);
     const {bundles}=await UP.list();
     let b=bundles.find(x=>x.version===v.version&&x.status==='success');
-    if(!b) b=await UP.download({url:v.url,version:v.version});
+    if(!b) b=await UP.download({url:v.url,version:v.version,checksum:v.checksum||''});
     ulog('downloaded',JSON.stringify(b));
     await UP.next({id:b.id});
     pendingUpdate=b;write('homework.lastUpdateCheck',Date.now());ulog('queued as next',b.id);
