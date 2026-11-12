@@ -1,0 +1,30 @@
+/* Bottom-sheet dialogs: edit an assignment, settings. */
+/* dialogs */
+dialog{border:0;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:640px;
+  margin:auto auto 0;background:var(--card);color:var(--text);max-height:90dvh;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+dialog h2{margin:0 0 4px;font-size:20px}
+dialog h4{margin:18px 0 0;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+dialog label.l{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+dialog input:not([type=checkbox]){width:100%;font:inherit;font-size:17px;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--bg);color:var(--text)}
+dialog input:focus{outline:none;border-color:var(--accent)}
+.daterow{display:flex;gap:8px}
+.daterow input{flex:1}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.btn{font:inherit;font-size:15px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn.danger{color:var(--late)}
+.btn.full{grid-column:1/-1}
+.spent{font-size:13px;color:var(--muted);margin-top:10px}
+.set{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.set .lbl{flex:1}
+.set .lbl small{display:block;color:var(--muted);font-size:13px}
+.set input[type=time],.set input[type=number]{width:auto !important;max-width:160px;padding:8px 10px !important;font-size:16px !important}
+.set input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:none}
+.lead{padding:12px 0;border-bottom:1px solid var(--line)}
+.lead .lbl small{display:block;color:var(--muted);font-size:13px}
+.wrapchips{flex-wrap:wrap;overflow:visible}
+.days{display:flex;gap:4px;padding:10px 0;border-bottom:1px solid var(--line)}
+.days .chip{flex:1;padding:6px 0;text-align:center}
+.status{font-size:13px;color:var(--muted);margin-top:12px}
+.status.warn{color:var(--late)}

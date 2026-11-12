@@ -1,6 +1,10 @@
 // Bump VERSION whenever you change the app so phones pick up the update.
-const VERSION = 'hw-v5';
-const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png'];
+const VERSION = 'hw-v6';
+// Every file the app needs offline. Add new css/ and js/ files here too.
+const CSS = ['base', 'addbar', 'list', 'tabbar', 'timer', 'sheets', 'dialogs', 'toast'].map(n => `css/${n}.css`);
+const JS = ['core', 'types', 'dates', 'state', 'addbar', 'pages', 'render', 'progress', 'toast', 'items', 'sheets',
+  'itemview', 'edit', 'timer', 'reminders', 'settings', 'updates', 'boot'].map(n => `js/${n}.js`);
+const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', ...CSS, ...JS];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
 });

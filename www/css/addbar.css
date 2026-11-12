@@ -1,0 +1,14 @@
+/* The sticky add bar: input, due-date and type chips, hint. */
+/* add bar */
+.add{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 6px}
+.add form{display:flex;gap:8px}
+.add input{flex:1;min-width:0;font:inherit;font-size:17px;padding:14px 16px;border-radius:14px;border:2px solid var(--line);
+  background:var(--card);color:var(--text);outline:none}
+.add input:focus{border-color:var(--accent)}
+.add form button{flex:none;width:54px;border:0;border-radius:14px;background:var(--accent);color:#fff;font-size:28px;line-height:1;cursor:pointer}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 0;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:5px 11px;font:inherit;font-size:14px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chips.types .chip{font-size:13px;padding:4px 10px}
+.hint{color:var(--muted);font-size:13px;min-height:18px;padding:4px 4px 0}
