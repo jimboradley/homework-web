@@ -34,7 +34,7 @@ body{background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-syste
   min-height:100dvh;padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 84px)}
 .wrap{max-width:640px;margin:0 auto;padding:0 16px}
 header{display:flex;align-items:center;justify-content:space-between;padding:16px 0 8px}
-h1{font-size:28px;margin:0;letter-spacing:-.02em}
+h1{font-size:clamp(22px,7vw,28px);margin:0;letter-spacing:-.02em}
 .hright{display:flex;align-items:center;gap:2px}
 .iconbtn{border:0;background:none;color:var(--muted);width:42px;height:42px;border-radius:12px;display:grid;place-items:center;cursor:pointer}
 .iconbtn:hover{background:var(--card)}
@@ -75,8 +75,6 @@ ul{list-style:none;margin:0;padding:0}
 .item.first{border:2px solid var(--accent);border-left-width:5px;box-shadow:0 0 0 3px var(--accent-soft),var(--shadow)}
 .item.first .text{font-weight:600}
 .badge.next{background:var(--accent);color:var(--card);text-transform:uppercase;letter-spacing:.04em;font-size:11px}
-.sorting .item{transition:none}
-.item.dragging{z-index:10;box-shadow:var(--lift);opacity:.97;transition:none}
 .check{flex:none;width:50px;height:56px;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0}
 .check::before{content:"";width:24px;height:24px;border-radius:50%;border:2.5px solid var(--muted);transition:.15s}
 .check:hover::before{border-color:var(--accent)}
@@ -95,8 +93,6 @@ ul{list-style:none;margin:0;padding:0}
 .badge.t-project{background:var(--proj-soft);color:var(--proj)}
 .badge.t-essay,.badge.t-reading,.badge.t-homework{background:var(--line);color:var(--muted)}
 .editbtn{flex:none;width:40px;height:56px;border:0;background:none;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0}
-.handle{flex:none;width:40px;align-self:stretch;display:grid;place-items:center;color:var(--muted);cursor:grab;touch-action:none;user-select:none}
-.dragging .handle{cursor:grabbing;color:var(--accent)}
 .empty{text-align:center;color:var(--muted);padding:40px 0}
 .empty b{display:block;font-size:20px;color:var(--text);margin-bottom:4px}
 .more{color:var(--muted);font-size:14px;text-align:center;padding:14px 0 0}
@@ -127,10 +123,9 @@ details[open] summary .arrow{transform:rotate(90deg)}
 /* timer pill: in the header while a timer exists (header then stays pinned above the add bar),
    plus a twin in the item view's top bar. Tap either to open the full timer. */
 body.timing header{position:sticky;top:0;z-index:6;background:var(--bg);margin:0 -16px;padding:16px 16px 8px}
-body.timing .add{top:66px}
+body.timing .add{top:var(--hh,66px)}   /* --hh = measured header height, kept current by a ResizeObserver */
 body.timing #focusBtn{display:none}
 body.timing h1{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media (max-width:370px){body.timing h1{font-size:22px}}
 body.timing #itemView .grab{display:none}
 .tpill{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 10px;border-radius:999px;border:1.5px solid var(--line);
   background:var(--card);color:var(--text);font:inherit;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow)}
@@ -533,7 +528,6 @@ $('todayMore').addEventListener('click',e=>{if(e.target.closest('button')) setPa
 
 /* ---------- render ---------- */
 const PENCIL='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
-const GRIP='<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><circle cx="7" cy="5" r="1.6"/><circle cx="13" cy="5" r="1.6"/><circle cx="7" cy="10" r="1.6"/><circle cx="13" cy="10" r="1.6"/><circle cx="7" cy="15" r="1.6"/><circle cx="13" cy="15" r="1.6"/></svg>';
 const isEvent=it=>it.type==='quiz'||it.type==='test';
 const isBig=it=>isEvent(it)||it.type==='project';
 // Today = anything late, due today, tomorrow or the day after (today+TODAY_DAYS), or with no date;
@@ -545,7 +539,7 @@ function inToday(it){
   if(isEvent(it)) return !!it.due&&diffDays(it.due)>=0&&diffDays(it.due)<=EVENT_DAYS;
   return !it.due||it.due<=todayEnd();
 }
-// Today and All are sorted by due date (late first, no date last); same date keeps the manual (drag) order.
+// Today and All are sorted by due date (late first, no date last); same date keeps the order they were added in.
 const sortByDue=list=>list.map((it,k)=>[it,k]).sort(([a,i],[b,j])=>(a.due||'9999').localeCompare(b.due||'9999')||i-j).map(p=>p[0]);
 const titleOf=it=>isEvent(it)&&!it.done?`Study for ${it.text}`:it.text;
 function badges(it){
@@ -555,12 +549,11 @@ function badges(it){
     const n=diffDays(it.due);b.textContent=d.t+(n>=2?` · ${n} days`:'');m.appendChild(b)}
   return m;
 }
-function li(it,{handle=true}={}){
+function li(it){
   const el=document.createElement('li');const ev=isEvent(it)&&!it.done;
   el.className='item'+(it.done?' done':'')+(ev?' event t-'+it.type:'');el.dataset.id=it.id;
   el.innerHTML=(ev?'<div class="studyic" aria-hidden="true">📖</div>':`<button class="check" aria-label="${it.done?'Mark not done':'Mark done'}"></button>`)+
-    `<div class="body"><div class="text"></div></div><button class="editbtn" aria-label="Edit">${PENCIL}</button>`+
-    (handle&&!it.done?`<div class="handle" aria-label="Drag to reorder">${GRIP}</div>`:'');
+    `<div class="body"><div class="text"></div></div><button class="editbtn" aria-label="Edit">${PENCIL}</button>`;
   el.querySelector('.text').textContent=titleOf(it);
   el.querySelector('.body').appendChild(badges(it));
   return el;
@@ -570,14 +563,12 @@ function render(){
   const today=sortByDue(todo.filter(inToday));
   const study=todo.filter(isEvent).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
   const done=items.filter(i=>i.done&&!isEvent(i)).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
-  if(!drag){
-    $('todayList').replaceChildren(...today.map(it=>li(it)));
-    const nx=$('todayList').firstElementChild; // highlight the next thing to do
-    if(nx){nx.classList.add('first');nx.querySelector('.meta').insertAdjacentHTML('afterbegin','<span class="badge next">Next</span>')}
-    $('studyList').replaceChildren(...study.map(it=>li(it,{handle:false})));
-    $('allList').replaceChildren(...sortByDue(todo).map(it=>li(it)));
-    $('doneList').replaceChildren(...done.map(it=>li(it,{handle:false})));
-  }
+  $('todayList').replaceChildren(...today.map(li));
+  const nx=$('todayList').firstElementChild; // highlight the next thing to do
+  if(nx){nx.classList.add('first');nx.querySelector('.meta').insertAdjacentHTML('afterbegin','<span class="badge next">Next</span>')}
+  $('studyList').replaceChildren(...study.map(li));
+  $('allList').replaceChildren(...sortByDue(todo).map(li));
+  $('doneList').replaceChildren(...done.map(li));
   $('todayEmpty').hidden=today.length>0;
   const later=todo.length-today.length;
   $('todayMore').innerHTML=later?`${later} more coming up later · <button type="button">See all</button>`:'';
@@ -650,7 +641,7 @@ function onListClick(e){
   const it=byId(el.dataset.id); if(!it) return;
   if(e.target.closest('.check')){if(it.done) undone(it); else complete(it,el)}
   else if(e.target.closest('.editbtn')) openEdit(it);
-  else if(!e.target.closest('.handle')) openItem(it);
+  else openItem(it);
 }
 for(const id of ['todayList','studyList','allList','doneList']) $(id).addEventListener('click',onListClick);
 $('clearDone').addEventListener('click',e=>{
@@ -735,50 +726,6 @@ $('del').addEventListener('click',()=>{
   const s=snapshot();items=items.filter(i=>i!==editing);save();render();$('edit').close();toast('Deleted',()=>restore(s));
 });
 for(const d of ['edit','settings']) $(d).addEventListener('click',e=>{if(e.target===$(d))$(d).close()});
-
-/* ---------- drag to reorder (touch + mouse), in any list with handles ---------- */
-let drag=null;
-document.addEventListener('pointerdown',e=>{
-  const h=e.target.closest('.handle'); if(!h) return;
-  e.preventDefault();
-  const el=h.closest('.item'),r=el.getBoundingClientRect();
-  drag={el,ul:el.parentNode,grab:e.clientY-r.top,y:e.clientY,pid:e.pointerId};
-  try{h.setPointerCapture(e.pointerId)}catch{}
-  el.classList.add('dragging');drag.ul.classList.add('sorting');
-  if(navigator.vibrate) navigator.vibrate(8);
-  requestAnimationFrame(autoScroll);
-});
-function place(){
-  const y=drag.y;let before=null;
-  for(const it of drag.ul.querySelectorAll('.item:not(.dragging)')){
-    const r=it.getBoundingClientRect(); if(y<r.top+r.height/2){before=it;break}
-  }
-  if(before!==drag.el.nextElementSibling&&before!==drag.el) drag.ul.insertBefore(drag.el,before);
-  drag.el.style.transform='none';
-  const r=drag.el.getBoundingClientRect();
-  drag.el.style.transform=`translateY(${y-drag.grab-r.top}px)`;
-}
-function autoScroll(){
-  if(!drag) return;
-  const vh=innerHeight,top=T?156:90,bottom=100;let dy=0;
-  if(drag.y<top) dy=-(top-drag.y)/5; else if(drag.y>vh-bottom) dy=(drag.y-(vh-bottom))/5;
-  if(dy){scrollBy(0,dy);place()}
-  requestAnimationFrame(autoScroll);
-}
-window.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.pid) return;drag.y=e.clientY;place()});
-function endDrag(e){
-  if(!drag||(e&&e.pointerId!==drag.pid)) return;
-  // The list may show only some items (Today): put them back into the same slots in the new order.
-  const ids=[...drag.ul.children].map(el=>el.dataset.id),set=new Set(ids),slots=[];
-  items.forEach((it,i)=>{if(set.has(it.id)) slots.push(i)});
-  const next=items.slice();ids.forEach((id,k)=>{next[slots[k]]=byId(id)});items=next;
-  const resorted=(drag.ul.id==='todayList'||drag.ul.id==='allList')&&sortByDue(ids.map(byId)).some((it,k)=>it.id!==ids[k]);
-  drag.el.style.transform='';drag.el.classList.remove('dragging');drag.ul.classList.remove('sorting');drag=null;
-  save();render();
-  if(resorted) toast('Lists stay sorted by due date — drag within a day');
-}
-window.addEventListener('pointerup',endDrag);
-window.addEventListener('pointercancel',endDrag);
 
 /* ---------- focus timer (pomodoro), not tied to any assignment ---------- */
 // T = {phase:'focus'|'break'|'ready', start, end|null, paused, remain, segStart, count, long}
@@ -900,6 +847,9 @@ function renderTimer(){
 // The header icon only opens the timer; nothing runs until Start is pressed.
 $('focusBtn').addEventListener('click',()=>{renderTimer();openSheet('timerFull')});
 $('timer').addEventListener('click',()=>openSheet('timerFull'));
+// While timing, the header is pinned and the add bar sticks just under it. Track the header's real height
+// (it changes with font size, screen width and the pill) so there is never a gap or overlap.
+if('ResizeObserver' in window) new ResizeObserver(([e])=>document.documentElement.style.setProperty('--hh',e.target.offsetHeight+'px')).observe(document.querySelector('header'));
 $('ivPill').addEventListener('click',()=>openSheet('timerFull'));
 $('tfClose').onclick=()=>closeSheet('timerFull');
 setInterval(tickTimer,1000);
