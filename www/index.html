@@ -49,11 +49,6 @@ h1{font-size:28px;margin:0;letter-spacing:-.02em}
 
 /* catch-up */
 [hidden]{display:none!important}
-.catchup{margin-top:10px;background:var(--late-soft);color:var(--text);border-radius:16px;padding:12px 14px;display:flex;gap:10px;align-items:center}
-.catchup .ct{flex:1;min-width:0}
-.catchup b{color:var(--late)}
-.catchup small{display:block;color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.catchup button{flex:none;border:0;background:var(--late);color:#fff;font:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:8px 12px;cursor:pointer}
 
 /* add bar */
 .add{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 6px}
@@ -255,10 +250,6 @@ body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
       <section class="progress" id="progress" aria-label="Today's progress">
         <div class="ptop"><b id="pTitle"></b><span id="pSub"></span></div>
         <div class="bar"><i id="pBar"></i></div>
-      </section>
-      <section class="catchup" id="catchup" hidden>
-        <div class="ct"><b id="cuTitle"></b><small id="cuList"></small></div>
-        <button id="cuBtn" type="button">Put first</button>
       </section>
     </div>
     <ul class="list" id="todayList"></ul>
@@ -598,7 +589,7 @@ function render(){
   $('allCount').textContent=todo.length?`${todo.length} to do`:'';
   $('doneWrap').hidden=!done.length;
   $('doneLabel').textContent=`Done (${done.length})`;
-  renderProgress();renderCatchup();renderItemView();
+  renderProgress();renderItemView();
 }
 
 /* progress: today's work = the dated homework in the Today window (late through today+TODAY_DAYS), plus whatever you finished today */
@@ -621,7 +612,6 @@ function renderProgress(){
   $('pSub').textContent=w;
   $('pBar').style.width=`${Math.round(did.length/total*100)}%`;
 }
-function lateItems(){const t=iso(today0());return items.filter(i=>!i.done&&i.due&&i.due<t&&!isEvent(i))}
 // Tests and quizzes are study reminders: once their day has passed, file them away automatically.
 function archivePastEvents(){
   const t=iso(today0());let changed=false;
@@ -630,21 +620,6 @@ function archivePastEvents(){
   }
   if(changed) save();
 }
-function renderCatchup(){
-  const late=lateItems();
-  $('catchup').hidden=!late.length;
-  if(!late.length) return;
-  $('cuTitle').textContent=`${late.length} late`;
-  $('cuList').textContent=late.map(i=>i.text).join(', ');
-  const todo=items.filter(i=>!i.done);
-  const alreadyFirst=todo.slice(0,late.length).every(i=>late.includes(i));
-  $('cuBtn').hidden=alreadyFirst;
-}
-$('cuBtn').addEventListener('click',()=>{
-  const late=lateItems().sort((a,b)=>a.due.localeCompare(b.due));
-  items=[...late,...items.filter(i=>!late.includes(i))];save();render();
-  toast('Late work moved to the top');
-});
 
 /* ---------- toast / undo ---------- */
 let toastTimer,undoFn;
