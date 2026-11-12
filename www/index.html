@@ -32,7 +32,6 @@
 html,body{margin:0}
 body{background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   min-height:100dvh;padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 84px)}
-body.timing{padding-bottom:calc(env(safe-area-inset-bottom) + 166px)}
 .wrap{max-width:640px;margin:0 auto;padding:0 16px}
 header{display:flex;align-items:center;justify-content:space-between;padding:16px 0 8px}
 h1{font-size:28px;margin:0;letter-spacing:-.02em}
@@ -75,9 +74,12 @@ ul{list-style:none;margin:0;padding:0}
 .list{display:flex;flex-direction:column;gap:8px}
 .item{display:flex;align-items:center;background:var(--card);border-radius:14px;box-shadow:var(--shadow);
   border:1px solid var(--line);min-height:62px;position:relative;transition:opacity .2s, transform .2s}
-.item.first{border-left:4px solid var(--accent)}
 .item.event{border-left:4px solid var(--quiz)}
 .item.event.t-test{border-left-color:var(--test)}
+/* the next thing to do on Today */
+.item.first{border:2px solid var(--accent);border-left-width:5px;box-shadow:0 0 0 3px var(--accent-soft),var(--shadow)}
+.item.first .text{font-weight:600}
+.badge.next{background:var(--accent);color:var(--card);text-transform:uppercase;letter-spacing:.04em;font-size:11px}
 .sorting .item{transition:none}
 .item.dragging{z-index:10;box-shadow:var(--lift);opacity:.97;transition:none}
 .check{flex:none;width:50px;height:56px;border:0;background:none;display:grid;place-items:center;cursor:pointer;padding:0}
@@ -127,19 +129,30 @@ details[open] summary .arrow{transform:rotate(90deg)}
   padding:8px 0 9px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
 .tabbar button[aria-selected="true"]{color:var(--accent)}
 
-/* timer bar (sits above the tab bar) */
-.timer{position:fixed;left:0;right:0;bottom:calc(58px + env(safe-area-inset-bottom));z-index:15;background:var(--card);
-  border-top:1px solid var(--line);box-shadow:var(--lift);padding:10px 16px;cursor:pointer;touch-action:none}
-.timer .in{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:12px}
-.ring{flex:none;width:58px;height:58px;position:relative}
-.ring svg{transform:rotate(-90deg)}
-.ring .tt{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
-.tinfo{flex:1;min-width:0}
-.tinfo .ph{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ok)}
-.tinfo .ph.brk{color:var(--soon)}
-.tinfo .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
-.tinfo .sub{font-size:12px;color:var(--muted)}
+/* timer pill: in the header while a timer exists (header then stays pinned above the add bar),
+   plus a twin in the item view's top bar. Tap either to open the full timer. */
+body.timing header{position:sticky;top:0;z-index:6;background:var(--bg);margin:0 -16px;padding:16px 16px 8px}
+body.timing .add{top:66px}
+body.timing #focusBtn{display:none}
+body.timing h1{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:370px){body.timing h1{font-size:22px}}
+body.timing #itemView .grab{display:none}
+.tpill{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 10px;border-radius:999px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--text);font:inherit;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow)}
+.tpill[hidden]{display:none}
+.tpill .ph{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ok)}
+.tpill .ph.brk{color:var(--soon)}
+.tpill .tt{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.tdot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--ok);animation:tpulse 2s ease-in-out infinite}
+.tdot.brk{background:var(--soon)}
+.tdot.idle{background:var(--muted);animation:none}
+@keyframes tpulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.tdot{animation:none}}
 .tbtns{display:flex;gap:6px}
+.tfdots{display:flex;gap:8px;min-height:10px}
+.tfdots i{width:10px;height:10px;border-radius:50%;border:2px solid var(--line)}
+.tfdots i.on{background:var(--ok);border-color:var(--ok)}
+.tfdots.brk i.on{background:var(--soon);border-color:var(--soon)}
 .tbtn{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--text);display:grid;place-items:center;cursor:pointer;font-size:18px}
 .tbtn.go{background:var(--accent);border-color:var(--accent);color:#fff;width:auto;padding:0 14px;font:inherit;font-weight:600;font-size:15px}
 
@@ -204,7 +217,6 @@ dialog input:focus{outline:none;border-color:var(--accent)}
 /* toast */
 .toast{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));transform:translate(-50%,160px);background:#14161f;color:#fff;
   border-radius:12px;padding:10px 8px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--lift);transition:transform .25s;z-index:40;width:max-content;max-width:calc(100% - 32px)}
-body.timing .toast{bottom:calc(152px + env(safe-area-inset-bottom))}
 .toast{pointer-events:none;opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility 0s .25s}
 .toast.show{transform:translate(-50%,0);opacity:1;visibility:visible;transition:transform .25s,opacity .25s}
 .toast button{pointer-events:auto}
@@ -217,6 +229,7 @@ body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
   <header>
     <h1>Locked In</h1>
     <div class="hright">
+      <button class="tpill" id="timer" type="button" hidden aria-label="Open focus timer"><span class="tdot"></span><span class="ph"></span><span class="tt"></span></button>
       <button class="iconbtn" id="focusBtn" aria-label="Focus timer">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>
       </button>
@@ -249,7 +262,7 @@ body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
       </section>
     </div>
     <ul class="list" id="todayList"></ul>
-    <div class="empty" id="todayEmpty" hidden><b>Nothing due today or tomorrow 🎉</b>Get ahead on something from All?</div>
+    <div class="empty" id="todayEmpty" hidden><b>Nothing due in the next few days 🎉</b>Get ahead on something from All?</div>
     <div class="more" id="todayMore"></div>
   </section>
 
@@ -260,7 +273,7 @@ body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
   </section>
 
   <section id="page_all" hidden>
-    <div class="pagehead"><span id="allCount"></span><button class="linkbtn" id="sortDue" type="button">Sort by due date</button></div>
+    <div class="pagehead"><span id="allCount"></span></div>
     <ul class="list" id="allList"></ul>
     <div class="empty" id="allEmpty" hidden><b>All caught up</b>Type something above to add it.</div>
     <details id="doneWrap" hidden>
@@ -272,29 +285,18 @@ body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
 </div>
 
 <nav class="tabbar" role="tablist">
-  <button role="tab" id="tab_today" aria-selected="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>Today</button>
   <button role="tab" id="tab_study" aria-selected="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Study</button>
+  <button role="tab" id="tab_today" aria-selected="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>Today</button>
   <button role="tab" id="tab_all" aria-selected="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>All</button>
 </nav>
 
-<!-- focus timer bar: tap or swipe up for full screen -->
-<div class="timer" id="timer" hidden>
-  <div class="in">
-    <div class="ring">
-      <svg width="58" height="58" viewBox="0 0 58 58"><circle cx="29" cy="29" r="25" fill="none" stroke="var(--line)" stroke-width="5"/>
-        <circle id="ringArc" cx="29" cy="29" r="25" fill="none" stroke="var(--ok)" stroke-width="5" stroke-linecap="round" stroke-dasharray="157.08" stroke-dashoffset="0"/></svg>
-      <div class="tt" id="tTime"></div>
-    </div>
-    <div class="tinfo"><div class="ph" id="tPhase"></div><div class="nm">Focus timer</div><div class="sub" id="tSub"></div></div>
-    <div class="tbtns" id="tBtns"></div>
-  </div>
-</div>
 
 <!-- one assignment, full screen -->
 <div class="sheet" id="itemView" role="dialog" aria-label="Assignment">
   <div class="shead">
     <button class="iconbtn" id="ivClose" aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
     <span class="grab"></span>
+    <button class="tpill" id="ivPill" type="button" hidden aria-label="Open focus timer"><span class="tdot"></span><span class="ph"></span><span class="tt"></span></button>
     <button class="iconbtn" id="ivEdit" aria-label="Edit"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
   </div>
   <div class="sbody">
@@ -322,6 +324,7 @@ body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
         <circle id="bigArc" cx="60" cy="60" r="54" fill="none" stroke="var(--ok)" stroke-width="7" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="0"/></svg>
       <div class="tt" id="tfTime"></div>
     </div>
+    <div class="tfdots" id="tfDots" aria-hidden="true"></div>
     <div class="tfsub" id="tfSub"></div>
     <div class="tfbtns" id="tfBtns"></div>
   </div>
@@ -363,7 +366,7 @@ body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
     <h4>Focus timer</h4>
     <div class="set"><input type="checkbox" id="sPomo"><div class="lbl">Pomodoro breaks<small>Off = plain stopwatch</small></div></div>
     <div class="set"><div class="lbl">Focus minutes</div><input type="number" id="sFocusMin" min="5" max="90" inputmode="numeric"></div>
-    <div class="set"><div class="lbl">Break minutes<small>Every 4th break is 15 min</small></div><input type="number" id="sBreakMin" min="1" max="30" inputmode="numeric"></div>
+    <div class="set"><div class="lbl">Break minutes<small>Every 4th break is a 30 min long break</small></div><input type="number" id="sBreakMin" min="1" max="30" inputmode="numeric"></div>
     <div class="status" id="notifStatus"></div>
     <div class="status" id="verStatus"></div>
     <div class="row">
@@ -529,10 +532,10 @@ $('addForm').addEventListener('submit',e=>{
 let page='today';
 function setPage(p){
   page=p;
-  for(const k of ['today','study','all']){$('page_'+k).hidden=k!==p;$('tab_'+k).setAttribute('aria-selected',k===p)}
+  for(const k of ['study','today','all']){$('page_'+k).hidden=k!==p;$('tab_'+k).setAttribute('aria-selected',k===p)}
   scrollTo(0,0);
 }
-for(const k of ['today','study','all']) $('tab_'+k).onclick=()=>setPage(k);
+for(const k of ['study','today','all']) $('tab_'+k).onclick=()=>setPage(k);
 $('todayMore').addEventListener('click',e=>{if(e.target.closest('button')) setPage('all')});
 
 /* ---------- render ---------- */
@@ -540,12 +543,17 @@ const PENCIL='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke
 const GRIP='<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><circle cx="7" cy="5" r="1.6"/><circle cx="13" cy="5" r="1.6"/><circle cx="7" cy="10" r="1.6"/><circle cx="13" cy="10" r="1.6"/><circle cx="7" cy="15" r="1.6"/><circle cx="13" cy="15" r="1.6"/></svg>';
 const isEvent=it=>it.type==='quiz'||it.type==='test';
 const isBig=it=>isEvent(it)||it.type==='project';
-// Today = anything late, due today or tomorrow, or with no date; plus tests/quizzes in the next 3 days.
+// Today = anything late, due today, tomorrow or the day after (today+TODAY_DAYS), or with no date;
+// plus tests/quizzes due today through today+EVENT_DAYS, to leave room to study (past ones are archived automatically).
+const TODAY_DAYS=2,EVENT_DAYS=3;
+const todayEnd=()=>iso(addDays(today0(),TODAY_DAYS));
 function inToday(it){
   if(it.done) return false;
-  if(isEvent(it)) return !!it.due&&diffDays(it.due)>=0&&diffDays(it.due)<=3;
-  return !it.due||it.due<=iso(addDays(today0(),1));
+  if(isEvent(it)) return !!it.due&&diffDays(it.due)>=0&&diffDays(it.due)<=EVENT_DAYS;
+  return !it.due||it.due<=todayEnd();
 }
+// Today and All are sorted by due date (late first, no date last); same date keeps the manual (drag) order.
+const sortByDue=list=>list.map((it,k)=>[it,k]).sort(([a,i],[b,j])=>(a.due||'9999').localeCompare(b.due||'9999')||i-j).map(p=>p[0]);
 const titleOf=it=>isEvent(it)&&!it.done?`Study for ${it.text}`:it.text;
 function badges(it){
   const m=document.createElement('div');m.className='meta';
@@ -566,14 +574,15 @@ function li(it,{handle=true}={}){
 }
 function render(){
   const todo=items.filter(i=>!i.done);
-  const today=todo.filter(inToday);
+  const today=sortByDue(todo.filter(inToday));
   const study=todo.filter(isEvent).sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
   const done=items.filter(i=>i.done&&!isEvent(i)).sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
   if(!drag){
     $('todayList').replaceChildren(...today.map(it=>li(it)));
-    if($('todayList').firstElementChild&&!isEvent(today[0])) $('todayList').firstElementChild.classList.add('first');
+    const nx=$('todayList').firstElementChild; // highlight the next thing to do
+    if(nx){nx.classList.add('first');nx.querySelector('.meta').insertAdjacentHTML('afterbegin','<span class="badge next">Next</span>')}
     $('studyList').replaceChildren(...study.map(it=>li(it,{handle:false})));
-    $('allList').replaceChildren(...todo.map(it=>li(it)));
+    $('allList').replaceChildren(...sortByDue(todo).map(it=>li(it)));
     $('doneList').replaceChildren(...done.map(it=>li(it,{handle:false})));
   }
   $('todayEmpty').hidden=today.length>0;
@@ -587,27 +596,26 @@ function render(){
   $('studyHead').innerHTML=study.length?`<span>${parts.length?`Next 7 days: ${parts.join(', ')}`:'Nothing in the next 7 days'}</span>`:'';
   $('allEmpty').hidden=todo.length>0;
   $('allCount').textContent=todo.length?`${todo.length} to do`:'';
-  $('sortDue').hidden=todo.length<2;
   $('doneWrap').hidden=!done.length;
   $('doneLabel').textContent=`Done (${done.length})`;
   renderProgress();renderCatchup();renderItemView();
 }
 
-/* progress: tonight's work = anything late or due today/tomorrow, plus whatever you finished today */
+/* progress: today's work = the dated homework in the Today window (late through today+TODAY_DAYS), plus whatever you finished today */
 function workedTodayMs(){
   let ms=meta.work[iso(today0())]||0;
   if(T&&T.phase==='focus'&&!T.paused&&T.segStart) ms+=Date.now()-Math.max(T.segStart,today0().getTime());
   return ms;
 }
 function renderProgress(){
-  const tISO=iso(today0()),tomISO=iso(addDays(today0(),1));
-  const need=items.filter(i=>!i.done&&!isEvent(i)&&i.due&&i.due<=tomISO);
+  const tISO=iso(today0()),endISO=todayEnd();
+  const need=items.filter(i=>!i.done&&!isEvent(i)&&i.due&&i.due<=endISO);
   const did=items.filter(i=>i.done&&!isEvent(i)&&i.doneAt&&iso(new Date(i.doneAt))===tISO);
   const total=need.length+did.length;
   const worked=workedTodayMs();
   const w=worked>=6e4?`${fmtMin(worked/6e4)} focused today`:'';
   if(!total){
-    $('pTitle').textContent='Nothing due tomorrow 🎉';$('pSub').textContent=w||'Get ahead on something?';$('pBar').style.width='0%';return;
+    $('pTitle').textContent='Nothing due soon 🎉';$('pSub').textContent=w||'Get ahead on something?';$('pBar').style.width='0%';return;
   }
   $('pTitle').textContent=need.length?`Today: ${did.length} of ${total} done`:`All ${total} done today 🎉`;
   $('pSub').textContent=w;
@@ -636,13 +644,6 @@ $('cuBtn').addEventListener('click',()=>{
   const late=lateItems().sort((a,b)=>a.due.localeCompare(b.due));
   items=[...late,...items.filter(i=>!late.includes(i))];save();render();
   toast('Late work moved to the top');
-});
-$('sortDue').addEventListener('click',()=>{
-  const s=snapshot();
-  const todo=items.filter(i=>!i.done).map((it,k)=>[it,k])
-    .sort((a,b)=>(a[0].due||'9999').localeCompare(b[0].due||'9999')||a[1]-b[1]).map(x=>x[0]);
-  items=[...todo,...items.filter(i=>i.done)];save();render();
-  toast('Sorted by due date — drag to adjust',()=>restore(s));
 });
 
 /* ---------- toast / undo ---------- */
@@ -782,7 +783,7 @@ function place(){
 }
 function autoScroll(){
   if(!drag) return;
-  const vh=innerHeight,top=90,bottom=T?180:100;let dy=0;
+  const vh=innerHeight,top=T?156:90,bottom=100;let dy=0;
   if(drag.y<top) dy=-(top-drag.y)/5; else if(drag.y>vh-bottom) dy=(drag.y-(vh-bottom))/5;
   if(dy){scrollBy(0,dy);place()}
   requestAnimationFrame(autoScroll);
@@ -794,14 +795,17 @@ function endDrag(e){
   const ids=[...drag.ul.children].map(el=>el.dataset.id),set=new Set(ids),slots=[];
   items.forEach((it,i)=>{if(set.has(it.id)) slots.push(i)});
   const next=items.slice();ids.forEach((id,k)=>{next[slots[k]]=byId(id)});items=next;
+  const resorted=(drag.ul.id==='todayList'||drag.ul.id==='allList')&&sortByDue(ids.map(byId)).some((it,k)=>it.id!==ids[k]);
   drag.el.style.transform='';drag.el.classList.remove('dragging');drag.ul.classList.remove('sorting');drag=null;
   save();render();
+  if(resorted) toast('Lists stay sorted by due date — drag within a day');
 }
 window.addEventListener('pointerup',endDrag);
 window.addEventListener('pointercancel',endDrag);
 
 /* ---------- focus timer (pomodoro), not tied to any assignment ---------- */
-// T = {phase:'focus'|'break'|'ready', start, end|null, paused, remain, segStart, count}
+// T = {phase:'focus'|'break'|'ready', start, end|null, paused, remain, segStart, count, long}
+// T is null until the user presses Start; the header icon only opens the (idle) full-screen timer.
 if(T) delete T.itemId;
 function credit(at){
   if(!T||!T.segStart) return;
@@ -819,10 +823,15 @@ function startFocus(){
   T.end=S.pomo?now+S.focusMin*6e4:null;
   saveTimer();timerNotifs();renderTimer();renderProgress();renderItemView();
 }
+// T.count = focus sessions finished since the timer was started (persisted with T).
+// Every CYCLE-th break (after focus 4, 8, 12...) is a long break.
+const CYCLE=4,LONG_BREAK_MIN=30;
+const isLongBreak=n=>n>0&&n%CYCLE===0;              // n = focus sessions done when the break starts
+const breakMinAfter=n=>isLongBreak(n)?LONG_BREAK_MIN:S.breakMin;
 function startBreak(at){
   T.count=(T.count||0)+1;
-  const len=(T.count%4===0?15:S.breakMin)*6e4;
-  T.phase='break';T.start=at;T.end=at+len;T.paused=false;
+  T.long=isLongBreak(T.count);
+  T.phase='break';T.start=at;T.end=at+breakMinAfter(T.count)*6e4;T.paused=false;
 }
 function stopTimer(){
   if(!T) return;
@@ -858,46 +867,63 @@ function tickTimer(){
 }
 function buzz(){if(navigator.vibrate&&!document.hidden) navigator.vibrate([150,80,150])}
 const ICON={pause:'⏸',play:'▶',stop:'■'};
+// Buttons for the full-screen timer. With no timer yet (T null) there is a single big Start button.
 function timerButtons(box){
-  const key=T.phase+T.paused;
+  const key=T?T.phase+T.paused:'idle';
   if(box.dataset.key===key) return;
   box.dataset.key=key;
   const b=(cls,label,txt,fn)=>{const x=document.createElement('button');x.className='tbtn '+cls;x.setAttribute('aria-label',label);x.textContent=txt;
     x.onclick=e=>{e.stopPropagation();fn()};return x};
   const btns=[];
+  if(!T){box.replaceChildren(b('go','Start focus timer','▶ Start',()=>startTimer()));return}
   if(T.phase==='focus') btns.push(b('',T.paused?'Resume':'Pause',T.paused?ICON.play:ICON.pause,togglePause));
   if(T.phase==='break') btns.push(b('go','Skip break','Skip',()=>startFocus()));
-  if(T.phase==='ready') btns.push(b('go','Start focus','Focus',()=>startFocus()));
+  if(T.phase==='ready') btns.push(b('go','Start focus','▶ Start focus',()=>startFocus()));
   btns.push(b('','Stop timer',ICON.stop,()=>stopTimer()));
   box.replaceChildren(...btns);
 }
 function renderTimer(){
   document.body.classList.toggle('timing',!!T);
-  $('timer').hidden=!T;
-  if(!T){$('tBtns').dataset.key=$('tfBtns').dataset.key='';if(sheetOpen('timerFull')) closeSheet('timerFull');return}
-  const now=Date.now();
-  let frac=0,clock='';
-  if(T.phase==='ready'){clock='';frac=0}
-  else if(T.end){const len=T.end-T.start;const left=T.paused?T.remain:T.end-now;clock=fmtClock(left);frac=1-left/len}
-  else {const el=T.paused?T.remain:now-T.start;clock=fmtClock(el);frac=(el%(36e5))/36e5}
+  const now=Date.now(),pomo=S.pomo,done=T?T.count||0:0;
+  const next=`session ${done%CYCLE+1} of ${CYCLE}`;     // the focus session running now / up next
+  let frac=0,clock,phase,pill,brk=false,fsub;
+  if(!T||T.phase==='ready'){
+    clock=fmtClock(pomo?S.focusMin*6e4:0);
+    phase=!T?'Ready to focus':T.long?'Long break’s over':'Break’s over';pill='Ready';
+    fsub=T?`Ready for ${next}?`:pomo?`${S.focusMin} min focus, ${S.breakMin} min breaks · every ${CYCLE}th break is ${LONG_BREAK_MIN} min`:'Counts up until you stop it';
+  } else {
+    if(T.end){const left=T.paused?T.remain:T.end-now;clock=fmtClock(left);frac=1-left/(T.end-T.start)}
+    else {const el=T.paused?T.remain:now-T.start;clock=fmtClock(el);frac=(el%(36e5))/36e5}
+    if(T.phase==='focus'){
+      phase=pill=T.paused?'Paused':'Focus';
+      fsub=pomo?next[0].toUpperCase()+next.slice(1)+(done?` · ${done} done`:''):'Stopwatch — counts up';
+    } else {
+      brk=true;phase=T.long?'Long break':'Short break';pill=T.long?'Long break':'Break';
+      fsub=T.long?`${LONG_BREAK_MIN} min long break — ${done} sessions done. Nice work!`:`Up next: ${next}`;
+    }
+  }
   frac=Math.min(1,Math.max(0,frac));
-  const color=T.phase==='break'?'var(--soon)':'var(--ok)';
-  $('tTime').textContent=$('tfTime').textContent=clock||'☕';
-  $('ringArc').style.strokeDashoffset=String(157.08*(1-frac));$('ringArc').style.stroke=color;
-  $('bigArc').style.strokeDashoffset=String(339.29*(1-frac));$('bigArc').style.stroke=color;
-  const phase=T.phase==='focus'?(T.paused?'Paused':'Focus'):T.phase==='break'?'Break':'Break’s over';
-  $('tPhase').className='ph'+(T.phase==='focus'?'':' brk');$('tPhase').textContent=phase;
-  $('tfPhase').className='tfph'+(T.phase==='focus'?'':' brk');$('tfPhase').textContent=phase;
-  const done=S.pomo&&T.count?`${T.count} pomodoro${T.count>1?'s':''} done`:'';
-  $('tSub').textContent=done||'Tap to make it big';
-  $('tfSub').textContent=T.phase==='ready'?'Ready for another round?':done;
-  timerButtons($('tBtns'));timerButtons($('tfBtns'));
+  $('tfTime').textContent=clock;
+  $('bigArc').style.strokeDashoffset=String(339.29*(1-frac));$('bigArc').style.stroke=brk?'var(--soon)':'var(--ok)';
+  $('tfPhase').className='tfph'+(brk?' brk':'');$('tfPhase').textContent=phase;
+  $('tfSub').textContent=fsub;
+  for(const p of [$('timer'),$('ivPill')]){   // the header pill and its twin in the item view
+    p.hidden=!T;if(!T) continue;
+    p.querySelector('.tdot').className='tdot'+(brk?' brk':'')+(T.paused||T.phase==='ready'?' idle':'');
+    p.querySelector('.ph').className='ph'+(brk?' brk':'');p.querySelector('.ph').textContent=pill;
+    p.querySelector('.tt').textContent=clock;
+    p.setAttribute('aria-label',`${phase} ${clock}. Open focus timer`);
+  }
+  // session dots: sessions finished in this round of 4 (all 4 lit during the long break)
+  const lit=T&&T.phase==='break'&&T.long?CYCLE:done%CYCLE;
+  $('tfDots').hidden=!pomo;$('tfDots').className='tfdots'+(brk?' brk':'');
+  $('tfDots').innerHTML=Array.from({length:CYCLE},(_,i)=>`<i class="${i<lit?'on':''}"></i>`).join('');
+  timerButtons($('tfBtns'));
 }
-$('focusBtn').addEventListener('click',()=>{if(!T) startTimer();openSheet('timerFull')});
+// The header icon only opens the timer; nothing runs until Start is pressed.
+$('focusBtn').addEventListener('click',()=>{renderTimer();openSheet('timerFull')});
 $('timer').addEventListener('click',()=>openSheet('timerFull'));
-(()=>{let y0=null;const t=$('timer');   // swipe the timer bar up to make it full screen
-  t.addEventListener('touchstart',e=>{y0=e.touches[0].clientY},{passive:true});
-  t.addEventListener('touchend',e=>{if(y0!=null&&e.changedTouches[0].clientY-y0<-30) openSheet('timerFull');y0=null});})();
+$('ivPill').addEventListener('click',()=>openSheet('timerFull'));
 $('tfClose').onclick=()=>closeSheet('timerFull');
 setInterval(tickTimer,1000);
 
@@ -980,11 +1006,12 @@ async function timerNotifs(){
   const list=[];
   const at=t=>({at:new Date(t),allowWhileIdle:true});
   if(T.phase==='focus'&&T.end){
-    const brk=((T.count||0)+1)%4===0?15:S.breakMin;
-    list.push({id:900,title:'Focus done — take a break',body:`${brk} min break. Nice work.`,schedule:at(T.end),channelId:CHANNEL});
-    list.push({id:901,title:'Break’s over',body:'Ready for another round?',schedule:at(T.end+brk*6e4),channelId:CHANNEL});
+    const n=(T.count||0)+1,long=isLongBreak(n),brk=breakMinAfter(n);
+    list.push({id:900,title:long?`Session ${CYCLE} of ${CYCLE} done — long break!`:'Focus done — take a break',
+      body:long?`${brk} min long break. You earned it.`:`${brk} min break. Nice work.`,schedule:at(T.end),channelId:CHANNEL});
+    list.push({id:901,title:long?'Long break’s over':'Break’s over',body:'Ready for another round?',schedule:at(T.end+brk*6e4),channelId:CHANNEL});
   } else if(T.phase==='break'&&T.end){
-    list.push({id:901,title:'Break’s over',body:'Ready for another round?',schedule:at(T.end),channelId:CHANNEL});
+    list.push({id:901,title:T.long?'Long break’s over':'Break’s over',body:'Ready for another round?',schedule:at(T.end),channelId:CHANNEL});
   }
   try{if(list.length) await LN.schedule({notifications:list})}catch(e){console.error(e)}
 }
