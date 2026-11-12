@@ -1,0 +1,37 @@
+/* Focus timer: the header pill, controls, and the full-screen timer. */
+/* timer pill: in the header while a timer exists (header then stays pinned above the add bar),
+   plus a twin in the item view's top bar. Tap either to open the full timer. */
+body.timing header{position:sticky;top:0;z-index:6;background:var(--bg);margin:0 -16px;padding:16px 16px 8px}
+body.timing .add{top:var(--hh,66px)}   /* --hh = measured header height, kept current by a ResizeObserver */
+body.timing #focusBtn{display:none}
+body.timing h1{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.timing #itemView .grab{display:none}
+.tpill{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 10px;border-radius:999px;border:1.5px solid var(--line);
+  background:var(--card);color:var(--text);font:inherit;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow)}
+.tpill[hidden]{display:none}
+.tpill .ph{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ok)}
+.tpill .ph.brk{color:var(--soon)}
+.tpill .tt{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.tdot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--ok);animation:tpulse 2s ease-in-out infinite}
+.tdot.brk{background:var(--soon)}
+.tdot.idle{background:var(--muted);animation:none}
+@keyframes tpulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.tdot{animation:none}}
+.tbtns{display:flex;gap:6px}
+.tfdots{display:flex;gap:8px;min-height:10px}
+.tfdots i{width:10px;height:10px;border-radius:50%;border:2px solid var(--line)}
+.tfdots i.on{background:var(--ok);border-color:var(--ok)}
+.tfdots.brk i.on{background:var(--soon);border-color:var(--soon)}
+.tbtn{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:var(--bg);color:var(--text);display:grid;place-items:center;cursor:pointer;font-size:18px}
+.tbtn.go{background:var(--accent);border-color:var(--accent);color:#fff;width:auto;padding:0 14px;font:inherit;font-weight:600;font-size:15px}
+
+.tfwrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px}
+.tfph{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ok)}
+.tfph.brk{color:var(--soon)}
+.bigring{position:relative;width:min(74vw,320px);aspect-ratio:1}
+.bigring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.bigring .tt{position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(44px,16vw,76px);font-weight:700;font-variant-numeric:tabular-nums}
+.tfsub{color:var(--muted);min-height:20px}
+.tfbtns{display:flex;gap:14px}
+.tfbtns .tbtn{width:68px;height:68px;border-radius:22px;font-size:26px}
+.tfbtns .tbtn.go{width:auto;padding:0 28px;font-size:19px}

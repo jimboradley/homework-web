@@ -1,0 +1,32 @@
+/* Theme tokens (light + dark), page reset, header and shared utilities. */
+:root{
+  --bg:#f5f6fa; --card:#ffffff; --text:#14161f; --muted:#6b7080; --line:#e3e5ec;
+  --accent:#4f46e5; --accent-soft:#eceafe; --late:#dc2626; --late-soft:#fde8e8;
+  --soon:#c2410c; --soon-soft:#ffedd5; --ok:#16a34a; --ok-soft:#dcfce7;
+  --test:#be185d; --test-soft:#fce7f3; --quiz:#7c3aed; --quiz-soft:#f1e8ff; --proj:#0369a1; --proj-soft:#e0f2fe;
+  --shadow:0 1px 2px rgba(20,22,31,.06),0 2px 8px rgba(20,22,31,.05); --lift:0 10px 30px rgba(20,22,31,.18);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1117; --card:#1a1d27; --text:#eef0f6; --muted:#9097a8; --line:#2a2e3b;
+    --accent:#8b85ff; --accent-soft:#25234a; --late:#f87171; --late-soft:#3a1d22;
+    --soon:#fb923c; --soon-soft:#3a2617; --ok:#4ade80; --ok-soft:#14301f;
+    --test:#f472b6; --test-soft:#3a1a2c; --quiz:#c4b5fd; --quiz-soft:#2c2145; --proj:#7dd3fc; --proj-soft:#132c3b;
+    --shadow:none; --lift:0 10px 30px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  min-height:100dvh;padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 84px)}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 0 8px}
+h1{font-size:clamp(22px,7vw,28px);margin:0;letter-spacing:-.02em}
+.hright{display:flex;align-items:center;gap:2px}
+.iconbtn{border:0;background:none;color:var(--muted);width:42px;height:42px;border-radius:12px;display:grid;place-items:center;cursor:pointer}
+.iconbtn:hover{background:var(--card)}
+/* hidden must win over display rules elsewhere; .vh hides an element but keeps it usable (the date picker) */
+[hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0}
