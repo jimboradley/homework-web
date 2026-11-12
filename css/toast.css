@@ -1,0 +1,9 @@
+/* Toast with undo. */
+/* toast */
+.toast{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom));transform:translate(-50%,160px);background:#14161f;color:#fff;
+  border-radius:12px;padding:10px 8px 10px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--lift);transition:transform .25s;z-index:40;width:max-content;max-width:calc(100% - 32px)}
+.toast{pointer-events:none;opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility 0s .25s}
+.toast.show{transform:translate(-50%,0);opacity:1;visibility:visible;transition:transform .25s,opacity .25s}
+.toast button{pointer-events:auto}
+body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
+.toast button{background:none;border:0;color:#a5b4fc;font:inherit;font-weight:700;padding:6px 10px;cursor:pointer}

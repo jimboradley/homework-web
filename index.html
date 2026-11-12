@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Locked In</title>
+<meta name="description" content="A fast homework list with study reminders and a focus timer.">
+<meta name="theme-color" content="#4f46e5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/addbar.css">
+<link rel="stylesheet" href="css/list.css">
+<link rel="stylesheet" href="css/tabbar.css">
+<link rel="stylesheet" href="css/timer.css">
+<link rel="stylesheet" href="css/sheets.css">
+<link rel="stylesheet" href="css/dialogs.css">
+<link rel="stylesheet" href="css/toast.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Locked In</h1>
+    <div class="hright">
+      <button class="tpill" id="timer" type="button" hidden aria-label="Open focus timer"><span class="tdot"></span><span class="ph"></span><span class="tt"></span></button>
+      <button class="iconbtn" id="focusBtn" aria-label="Focus timer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg>
+      </button>
+      <button class="iconbtn" id="openSettings" aria-label="Settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="add">
+    <form id="addForm" autocomplete="off">
+      <input id="addInput" placeholder="Add… (try “bio quiz fri”)" enterkeyhint="go" aria-label="New assignment">
+      <button type="submit" aria-label="Add">+</button>
+    </form>
+    <div class="chips" id="chips" aria-label="Due date"></div>
+    <div class="chips types" id="typeChips" aria-label="Type"></div>
+    <div class="hint" id="hint"></div>
+    <input type="date" id="pickDate" class="vh" tabindex="-1" aria-hidden="true">
+  </div>
+
+  <section id="page_today">
+    <div class="today-top">
+      <section class="progress" id="progress" aria-label="Today's progress">
+        <div class="ptop"><b id="pTitle"></b><span id="pSub"></span></div>
+        <div class="bar"><i id="pBar"></i></div>
+      </section>
+    </div>
+    <ul class="list" id="todayList"></ul>
+    <div class="empty" id="todayEmpty" hidden><b>Nothing due in the next few days 🎉</b>Get ahead on something from All?</div>
+    <div class="more" id="todayMore"></div>
+  </section>
+
+  <section id="page_study" hidden>
+    <div class="pagehead" id="studyHead"></div>
+    <ul class="list" id="studyList"></ul>
+    <div class="empty" id="studyEmpty" hidden><b>No tests or quizzes coming up</b>Add one like “bio test fri”.</div>
+  </section>
+
+  <section id="page_all" hidden>
+    <div class="pagehead"><span id="allCount"></span></div>
+    <ul class="list" id="allList"></ul>
+    <div class="empty" id="allEmpty" hidden><b>All caught up</b>Type something above to add it.</div>
+    <details id="doneWrap" hidden>
+      <summary><span><span class="arrow">›</span><span id="doneLabel">Done</span></span>
+        <button class="linkbtn" id="clearDone" type="button">Clear</button></summary>
+      <ul class="list" id="doneList"></ul>
+    </details>
+  </section>
+</div>
+
+<nav class="tabbar" role="tablist">
+  <button role="tab" id="tab_study" aria-selected="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></svg>Study</button>
+  <button role="tab" id="tab_today" aria-selected="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>Today</button>
+  <button role="tab" id="tab_all" aria-selected="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>All</button>
+</nav>
+
+
+<!-- one assignment, full screen -->
+<div class="sheet" id="itemView" role="dialog" aria-label="Assignment">
+  <div class="shead">
+    <button class="iconbtn" id="ivClose" aria-label="Back"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+    <span class="grab"></span>
+    <button class="tpill" id="ivPill" type="button" hidden aria-label="Open focus timer"><span class="tdot"></span><span class="ph"></span><span class="tt"></span></button>
+    <button class="iconbtn" id="ivEdit" aria-label="Edit"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+  </div>
+  <div class="sbody">
+    <span class="badge" id="ivType"></span>
+    <h2 class="ivtitle" id="ivTitle"></h2>
+    <p class="ivdue" id="ivDue"></p>
+  </div>
+  <div class="sacts">
+    <button class="bigbtn" id="ivTimer" type="button"></button>
+    <button class="bigbtn ok" id="ivDone" type="button"></button>
+  </div>
+</div>
+
+<!-- focus timer, full screen -->
+<div class="sheet" id="timerFull" role="dialog" aria-label="Focus timer">
+  <div class="shead">
+    <button class="iconbtn" id="tfClose" aria-label="Minimize"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+    <span class="grab"></span>
+    <span style="width:42px"></span>
+  </div>
+  <div class="tfwrap">
+    <div class="tfph" id="tfPhase"></div>
+    <div class="bigring">
+      <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--line)" stroke-width="7"/>
+        <circle id="bigArc" cx="60" cy="60" r="54" fill="none" stroke="var(--ok)" stroke-width="7" stroke-linecap="round" stroke-dasharray="339.29" stroke-dashoffset="0"/></svg>
+      <div class="tt" id="tfTime"></div>
+    </div>
+    <div class="tfdots" id="tfDots" aria-hidden="true"></div>
+    <div class="tfsub" id="tfSub"></div>
+    <div class="tfbtns" id="tfBtns"></div>
+  </div>
+</div>
+
+<dialog id="edit">
+  <form method="dialog" id="editForm">
+    <label class="l" for="editText">Assignment</label>
+    <input id="editText" required>
+    <label class="l">Type</label>
+    <div class="chips types" id="editTypes"></div>
+    <label class="l" for="editDue">Due</label>
+    <div class="daterow">
+      <input id="editDue" type="date">
+      <button class="btn" type="button" id="clearDue">None</button>
+    </div>
+    <div class="row">
+      <button class="btn" type="button" id="toTop">↑ Move to top</button>
+      <button class="btn" type="button" id="toBottom">↓ Move to bottom</button>
+      <button class="btn danger" type="button" id="del">Delete</button>
+      <button class="btn primary" value="save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="settings">
+  <form method="dialog">
+    <h2>Settings</h2>
+    <h4>Homework time</h4>
+    <div class="set"><input type="checkbox" id="sSession"><div class="lbl">Daily “start homework” reminder<small>Even when nothing is due. Also tells you what’s late.</small></div><input type="time" id="sSessionTime"></div>
+    <div class="days" id="sDays"></div>
+    <h4>Heads-up before it’s due</h4>
+    <div class="lead"><div class="lbl">Homework, reading, essays</div><div class="chips wrapchips" id="sLeadSmall"></div></div>
+    <div class="lead"><div class="lbl">Tests, quizzes, projects</div><div class="chips wrapchips" id="sLeadBig"></div></div>
+    <div class="set"><div class="lbl">Heads-up time<small>Tap none to turn them off</small></div><input type="time" id="sEveningTime"></div>
+    <div class="set"><input type="checkbox" id="sMorning"><div class="lbl">Morning it’s due<small>“Due today: …”</small></div><input type="time" id="sMorningTime"></div>
+    <h4>Late work</h4>
+    <div class="lead"><div class="lbl">Remind me about late work<small>Until it’s checked off</small></div><div class="chips wrapchips" id="sLateEvery"></div></div>
+    <h4>Focus timer</h4>
+    <div class="set"><input type="checkbox" id="sPomo"><div class="lbl">Pomodoro breaks<small>Off = plain stopwatch</small></div></div>
+    <div class="set"><div class="lbl">Focus minutes</div><input type="number" id="sFocusMin" min="5" max="90" inputmode="numeric"></div>
+    <div class="set"><div class="lbl">Break minutes</div><input type="number" id="sBreakMin" min="1" max="30" inputmode="numeric"></div>
+    <div class="set"><div class="lbl">Long break after<small>Focus sessions before a long break</small></div><input type="number" id="sCycle" min="2" max="10" inputmode="numeric"></div>
+    <div class="set"><div class="lbl">Long break minutes</div><input type="number" id="sLongMin" min="5" max="60" inputmode="numeric"></div>
+    <div class="status" id="notifStatus"></div>
+    <div class="status" id="verStatus"></div>
+    <div class="row">
+      <button class="btn" type="button" id="testNotif">Send a test</button>
+      <button class="btn primary" value="done">Done</button>
+      <button class="btn full" type="button" id="fixNotif" hidden>Turn on notifications</button>
+      <button class="btn full" type="button" id="checkUpdate" hidden>Check for app updates</button>
+    </div>
+    <details class="status" id="updLog" hidden><summary>Update log</summary><pre id="updLogText" style="white-space:pre-wrap;font-size:11px;user-select:text"></pre></details>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="toastBtn">Undo</button></div>
+
+<!-- Stamped by the publish workflow ('builtin' inside the APK). The workflows edit index.html, so keep it here. -->
+<script>const APP_VERSION='1.0.20';</script>
+<!-- order matters: later files use what earlier ones define. See CLAUDE.md. -->
+<script src="js/core.js"></script>
+<script src="js/types.js"></script>
+<script src="js/dates.js"></script>
+<script src="js/state.js"></script>
+<script src="js/addbar.js"></script>
+<script src="js/pages.js"></script>
+<script src="js/render.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/toast.js"></script>
+<script src="js/items.js"></script>
+<script src="js/sheets.js"></script>
+<script src="js/itemview.js"></script>
+<script src="js/edit.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/reminders.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/updates.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>

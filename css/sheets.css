@@ -1,0 +1,17 @@
+/* Full-screen sheets (an assignment, the timer) and the item view. */
+/* full-screen views (an assignment, the timer) */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);transform:translateY(100%);visibility:hidden;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s;overscroll-behavior:contain}
+.sheet.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.sheet.dragging{transition:none}
+#timerFull{z-index:30}
+.shead{display:flex;align-items:center;justify-content:space-between;padding:8px 8px 0;max-width:640px;width:100%;margin:0 auto}
+.grab{width:44px;height:5px;border-radius:9px;background:var(--line)}
+.sbody{flex:1;overflow:auto;padding:24px 20px;max-width:640px;width:100%;margin:0 auto}
+.ivtitle{font-size:30px;line-height:1.2;margin:14px 0 10px;overflow-wrap:anywhere;letter-spacing:-.01em}
+.ivdue{font-size:18px;color:var(--muted);margin:0}
+.ivdue.late{color:var(--late)}
+.sacts{display:flex;flex-direction:column;gap:10px;padding:16px 20px 24px;max-width:640px;width:100%;margin:0 auto}
+.bigbtn{font:inherit;font-size:18px;font-weight:600;padding:16px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);color:var(--text);cursor:pointer}
+.bigbtn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
