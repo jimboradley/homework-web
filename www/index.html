@@ -357,7 +357,9 @@ body:has(.sheet.open) .toast{bottom:calc(200px + env(safe-area-inset-bottom))}
     <h4>Focus timer</h4>
     <div class="set"><input type="checkbox" id="sPomo"><div class="lbl">Pomodoro breaks<small>Off = plain stopwatch</small></div></div>
     <div class="set"><div class="lbl">Focus minutes</div><input type="number" id="sFocusMin" min="5" max="90" inputmode="numeric"></div>
-    <div class="set"><div class="lbl">Break minutes<small>Every 4th break is a 30 min long break</small></div><input type="number" id="sBreakMin" min="1" max="30" inputmode="numeric"></div>
+    <div class="set"><div class="lbl">Break minutes</div><input type="number" id="sBreakMin" min="1" max="30" inputmode="numeric"></div>
+    <div class="set"><div class="lbl">Long break after<small>Focus sessions before a long break</small></div><input type="number" id="sCycle" min="2" max="10" inputmode="numeric"></div>
+    <div class="set"><div class="lbl">Long break minutes</div><input type="number" id="sLongMin" min="5" max="60" inputmode="numeric"></div>
     <div class="status" id="notifStatus"></div>
     <div class="status" id="verStatus"></div>
     <div class="row">
@@ -405,7 +407,7 @@ let meta=read(MKEY,{samples:{},work:{}});   // samples: minutes per type; work: 
 for(const it of items) if(!it.type) it.type=detectType(it.text);
 const DEFAULTS={session:true,sessionTime:'16:00',days:[0,1,2,3,4],lateEvery:1,
   leadSmall:[2,1],leadBig:[7,3,2,1],eveningTime:'19:00',morning:true,morningTime:'07:00',
-  pomo:true,focusMin:25,breakMin:5};
+  pomo:true,focusMin:25,breakMin:5,cycle:4,longMin:30};
 let S={...DEFAULTS,...read(SKEY,{})};
 if('late' in S){if(S.late===false)S.lateEvery=0;delete S.late}   // settings from the first version
 if('twoDay' in S||'evening' in S){const l=[];if(S.twoDay!==false)l.push(2);if(S.evening!==false)l.push(1);S.leadSmall=l;delete S.twoDay;delete S.evening}
@@ -799,10 +801,10 @@ function startFocus(){
   saveTimer();timerNotifs();renderTimer();renderProgress();renderItemView();
 }
 // T.count = focus sessions finished since the timer was started (persisted with T).
-// Every CYCLE-th break (after focus 4, 8, 12...) is a long break.
-const CYCLE=4,LONG_BREAK_MIN=30;
-const isLongBreak=n=>n>0&&n%CYCLE===0;              // n = focus sessions done when the break starts
-const breakMinAfter=n=>isLongBreak(n)?LONG_BREAK_MIN:S.breakMin;
+// Every S.cycle-th break (by default after focus 4, 8, 12...) is a long break of S.longMin minutes.
+const ordinal=n=>n+(n%100>10&&n%100<14?'th':['th','st','nd','rd'][n%10]||'th');
+const isLongBreak=n=>n>0&&n%S.cycle===0;              // n = focus sessions done when the break starts
+const breakMinAfter=n=>isLongBreak(n)?S.longMin:S.breakMin;
 function startBreak(at){
   T.count=(T.count||0)+1;
   T.long=isLongBreak(T.count);
@@ -860,12 +862,12 @@ function timerButtons(box){
 function renderTimer(){
   document.body.classList.toggle('timing',!!T);
   const now=Date.now(),pomo=S.pomo,done=T?T.count||0:0;
-  const next=`session ${done%CYCLE+1} of ${CYCLE}`;     // the focus session running now / up next
+  const next=`session ${done%S.cycle+1} of ${S.cycle}`;     // the focus session running now / up next
   let frac=0,clock,phase,pill,brk=false,fsub;
   if(!T||T.phase==='ready'){
     clock=fmtClock(pomo?S.focusMin*6e4:0);
     phase=!T?'Ready to focus':T.long?'Long break’s over':'Break’s over';pill='Ready';
-    fsub=T?`Ready for ${next}?`:pomo?`${S.focusMin} min focus, ${S.breakMin} min breaks · every ${CYCLE}th break is ${LONG_BREAK_MIN} min`:'Counts up until you stop it';
+    fsub=T?`Ready for ${next}?`:pomo?`${S.focusMin} min focus, ${S.breakMin} min breaks · every ${ordinal(S.cycle)} break is ${S.longMin} min`:'Counts up until you stop it';
   } else {
     if(T.end){const left=T.paused?T.remain:T.end-now;clock=fmtClock(left);frac=1-left/(T.end-T.start)}
     else {const el=T.paused?T.remain:now-T.start;clock=fmtClock(el);frac=(el%(36e5))/36e5}
@@ -874,7 +876,7 @@ function renderTimer(){
       fsub=pomo?next[0].toUpperCase()+next.slice(1)+(done?` · ${done} done`:''):'Stopwatch — counts up';
     } else {
       brk=true;phase=T.long?'Long break':'Short break';pill=T.long?'Long break':'Break';
-      fsub=T.long?`${LONG_BREAK_MIN} min long break — ${done} sessions done. Nice work!`:`Up next: ${next}`;
+      fsub=T.long?`${S.longMin} min long break — ${done} sessions done. Nice work!`:`Up next: ${next}`;
     }
   }
   frac=Math.min(1,Math.max(0,frac));
@@ -890,9 +892,9 @@ function renderTimer(){
     p.setAttribute('aria-label',`${phase} ${clock}. Open focus timer`);
   }
   // session dots: sessions finished in this round of 4 (all 4 lit during the long break)
-  const lit=T&&T.phase==='break'&&T.long?CYCLE:done%CYCLE;
+  const lit=T&&T.phase==='break'&&T.long?S.cycle:done%S.cycle;
   $('tfDots').hidden=!pomo;$('tfDots').className='tfdots'+(brk?' brk':'');
-  $('tfDots').innerHTML=Array.from({length:CYCLE},(_,i)=>`<i class="${i<lit?'on':''}"></i>`).join('');
+  $('tfDots').innerHTML=Array.from({length:S.cycle},(_,i)=>`<i class="${i<lit?'on':''}"></i>`).join('');
   timerButtons($('tfBtns'));
 }
 // The header icon only opens the timer; nothing runs until Start is pressed.
@@ -982,7 +984,7 @@ async function timerNotifs(){
   const at=t=>({at:new Date(t),allowWhileIdle:true});
   if(T.phase==='focus'&&T.end){
     const n=(T.count||0)+1,long=isLongBreak(n),brk=breakMinAfter(n);
-    list.push({id:900,title:long?`Session ${CYCLE} of ${CYCLE} done — long break!`:'Focus done — take a break',
+    list.push({id:900,title:long?`Session ${S.cycle} of ${S.cycle} done — long break!`:'Focus done — take a break',
       body:long?`${brk} min long break. You earned it.`:`${brk} min break. Nice work.`,schedule:at(T.end),channelId:CHANNEL});
     list.push({id:901,title:long?'Long break’s over':'Break’s over',body:'Ready for another round?',schedule:at(T.end+brk*6e4),channelId:CHANNEL});
   } else if(T.phase==='break'&&T.end){
@@ -1036,7 +1038,7 @@ function initSettings(){
     else{x.value=S[k];x.onchange=()=>{if(x.value){S[k]=x.value;saveSettings();setTimeout(refreshStatus,600)}}}};
   bind('session','sSession');bind('sessionTime','sSessionTime');bind('eveningTime','sEveningTime');
   bind('morning','sMorning');bind('morningTime','sMorningTime');
-  bind('pomo','sPomo');bind('focusMin','sFocusMin');bind('breakMin','sBreakMin');
+  bind('pomo','sPomo');bind('focusMin','sFocusMin');bind('breakMin','sBreakMin');bind('cycle','sCycle');bind('longMin','sLongMin');
   $('openSettings').onclick=()=>{renderDays();renderCadence();refreshStatus();$('settings').showModal()};
 }
 
